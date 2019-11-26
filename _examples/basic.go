@@ -19,13 +19,6 @@ var config struct {
 }
 
 func main() {
-	// Set defaults
-	config.port = 8080
-	config.name = "bugs"
-	config.start = time.Now()
-	config.url, _ = url.Parse("http://localhost:8080")
-	config.in = os.Stdin
-
 	flag.Var(flags.Int(&config.port, checkPort), "port", "port to listen on")
 	flag.Var(flags.String(&config.name, checkName), "name", "logger name")
 	flag.Var(flags.URL(config.url), "url", "url to hit")
@@ -52,4 +45,13 @@ func checkName(s string) error {
 		return fmt.Errorf("empty name")
 	}
 	return nil
+}
+
+func init() {
+	// Set defaults
+	config.port = 8080
+	config.name = "bugs"
+	config.start = time.Now()
+	config.url, _ = url.Parse("http://localhost:8080")
+	config.in = os.Stdin
 }
