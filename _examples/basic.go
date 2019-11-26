@@ -1,7 +1,3 @@
-# flags - More flag Types
-
-
-```go
 package main
 
 import (
@@ -57,14 +53,3 @@ func checkName(s string) error {
 	}
 	return nil
 }
-
-```
-
-
-## Types
-
-- File
-- Int 
-- String
-- Time
-- URL

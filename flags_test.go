@@ -1,21 +1,31 @@
 package flags
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"net/url"
 	"testing"
+	"time"
 )
 
-func TestValidatedInt(t *testing.T) {
-	var i int
+func newFlagSet() *flag.FlagSet {
+	var buf bytes.Buffer
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.SetOutput(&buf)
+	return fs
+}
+
+func TestInt(t *testing.T) {
+	var i int
+	fs := newFlagSet()
 	isPositive := func(i int) error {
 		if i < 0 {
 			return fmt.Errorf("%d < 0", i)
 		}
 		return nil
 	}
-	fs.Var(NewValidatedInt(&i, isPositive), "port", "port to listen on")
+	fs.Var(Int(&i, isPositive), "port", "port to listen on")
 	err := fs.Parse([]string{"-port", "8080"})
 	if err != nil {
 		t.Fatal(err)
@@ -28,4 +38,69 @@ func TestValidatedInt(t *testing.T) {
 	if err == nil {
 		t.Fatal("no error on negative number")
 	}
+}
+
+func TestURL(t *testing.T) {
+	var u url.URL
+	fs := newFlagSet()
+	fs.Var(URL(&u), "url", "server url")
+	url := "http://example.com"
+	err := fs.Parse([]string{"-url", url})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if u.String() != url {
+		t.Fatal(u.String())
+	}
+}
+
+func TestString(t *testing.T) {
+	var s string
+	host := "example.com"
+	fs := newFlagSet()
+	check := func(s string) error {
+		if len(s) == 0 {
+			return fmt.Errorf("empty string")
+		}
+		return nil
+	}
+	fs.Var(String(&s, check), "host", "host name")
+	err := fs.Parse([]string{"-host", host})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if s != host {
+		t.Fatal(s)
+	}
+
+	err = fs.Parse([]string{"-host", ""})
+	if err == nil {
+		t.Fatal("empty string")
+	}
+}
+
+func TestTime(t *testing.T) {
+	var tm time.Time
+	fs := newFlagSet()
+	fs.Var(Time(&tm, time.RFC3339), "start", "start time")
+	ts := "2019-11-26T19:23:42Z"
+	err := fs.Parse([]string{"-start", ts})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if tm.Format(time.RFC3339) != ts {
+		t.Fatal(tm)
+	}
+
+	err = fs.Parse([]string{"-start", "2017-11-26"})
+	if err == nil {
+		t.Fatal("parse bad time")
+	}
+}
+
+func TestFile(t *testing.T) {
+	t.Skip("TODO")
 }
