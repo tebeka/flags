@@ -23,7 +23,7 @@ func main() {
 	flag.Var(flags.String(&config.name, checkName), "name", "logger name")
 	flag.Var(flags.URL(config.url), "url", "url to hit")
 	flag.Var(flags.Time(&config.start, time.RFC3339), "start", "start time")
-	flag.Var(flags.File(&config.in, 'r'), "input", "input file")
+	flag.Var(flags.File(config.in, 'r'), "input", "input file")
 	flag.Parse()
 
 	fmt.Printf("port: %d\n", config.port)

@@ -102,17 +102,17 @@ func (u *URLFlag) Set(s string) error {
 
 // FileFlag object
 type FileFlag struct {
-	ptr  **os.File
+	ptr  *os.File
 	mode byte // rwa
 }
 
 // File returns a new *File
-func File(ptr **os.File, mode byte) *FileFlag {
+func File(ptr *os.File, mode byte) *FileFlag {
 	return &FileFlag{ptr, mode}
 }
 
 func (f *FileFlag) String() string {
-	if f.ptr == nil || *f.ptr == nil {
+	if f.ptr == nil {
 		return ""
 	}
 	return (*f.ptr).Name()
@@ -123,9 +123,9 @@ func (f *FileFlag) Set(s string) error {
 	if s == "-" {
 		switch f.mode {
 		case 'r':
-			*f.ptr = os.Stdin
+			*f.ptr = *os.Stdin
 		case 'w', 'a':
-			*f.ptr = os.Stdout
+			*f.ptr = *os.Stdout
 		}
 		return nil
 	}
@@ -145,7 +145,7 @@ func (f *FileFlag) Set(s string) error {
 		return err
 	}
 
-	*f.ptr = file
+	*f.ptr = *file
 	return nil
 }
 
