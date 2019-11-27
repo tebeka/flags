@@ -25,6 +25,7 @@ func (v *IntFlag) String() string {
 	return strconv.FormatInt(int64(*v.ptr), 10)
 }
 
+// Set value from a string
 func (v *IntFlag) Set(s string) error {
 	i, err := strconv.Atoi(s)
 	if err != nil {
@@ -59,6 +60,7 @@ func (v *StringFlag) String() string {
 	return *v.ptr
 }
 
+// Set value from a string
 func (v *StringFlag) Set(s string) error {
 	if v.check != nil {
 		if err := v.check(s); err != nil {
@@ -76,6 +78,7 @@ type URLFlag struct {
 	url *url.URL
 }
 
+// URL create a new URLFlag
 func URL(url *url.URL) *URLFlag {
 	return &URLFlag{url}
 }
@@ -87,6 +90,7 @@ func (u *URLFlag) String() string {
 	return u.url.String()
 }
 
+// Set value from a string
 func (u *URLFlag) Set(s string) error {
 	url, err := url.Parse(s)
 	if err != nil {
@@ -114,6 +118,7 @@ func (f *FileFlag) String() string {
 	return (*f.ptr).Name()
 }
 
+// Set value from a string
 func (f *FileFlag) Set(s string) error {
 	if s == "-" {
 		switch f.mode {
@@ -144,7 +149,7 @@ func (f *FileFlag) Set(s string) error {
 	return nil
 }
 
-// TimeFlag
+// TimeFlag is a time.Time flag with specific format
 type TimeFlag struct {
 	ptr    *time.Time
 	layout string
@@ -163,6 +168,7 @@ func (t *TimeFlag) String() string {
 	return t.ptr.Format(t.layout)
 }
 
+// Set value from a string
 func (t *TimeFlag) Set(s string) error {
 	tm, err := time.Parse(t.layout, s)
 	if err != nil {

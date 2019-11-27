@@ -1,4 +1,5 @@
-/* Package flags adds various command line flags
+/*
+Package flags adds various types for command line flags (Time, URL, File ...)
 
 Example:
 	package main
