@@ -104,3 +104,17 @@ func TestTime(t *testing.T) {
 func TestFile(t *testing.T) {
 	t.Skip("TODO")
 }
+
+func TestPort(t *testing.T) {
+	fs := newFlagSet()
+	val := 9876
+	var port int
+	fs.Var(Port(&port), "port", "port to listen on")
+	err := fs.Parse([]string{"-port", fmt.Sprintf("%d", val)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if val != port {
+		t.Fatalf("%d != %d", val, port)
+	}
+}

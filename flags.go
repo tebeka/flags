@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"strconv"
@@ -177,4 +178,18 @@ func (t *TimeFlag) Set(s string) error {
 
 	*t.ptr = tm
 	return nil
+}
+
+func checkPort(val int) error {
+	// port 0 will get random free port
+	const minPort, maxPort = 0, 65535
+	if val < minPort || val > maxPort {
+		return fmt.Errorf("port %d out of range [%d:%d]", val, minPort, maxPort)
+	}
+	return nil
+}
+
+// Port return an IntFlag that validates a porth
+func Port(ptr *int) *IntFlag {
+	return Int(ptr, checkPort)
 }
