@@ -40,6 +40,30 @@ func TestInt(t *testing.T) {
 	}
 }
 
+func TestFloat(t *testing.T) {
+	var f float64
+	fs := newFlagSet()
+	isPositive := func(f float64) error {
+		if f < 0 {
+			return fmt.Errorf("%f < 0", f)
+		}
+		return nil
+	}
+	fs.Var(Float(&f, isPositive), "ratio", "compression ratio")
+	err := fs.Parse([]string{"-ratio", "3.2"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f != 3.2 {
+		t.Fatal(f)
+	}
+
+	err = fs.Parse([]string{"-ratio", "-8.3"})
+	if err == nil {
+		t.Fatal("no error on negative number")
+	}
+}
+
 func TestURL(t *testing.T) {
 	var u url.URL
 	fs := newFlagSet()

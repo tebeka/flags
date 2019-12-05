@@ -122,6 +122,7 @@ url: "http://localhost:8080"
 *This section is still unfinished*
 
 - File
+- Float
 - Int 
 - Port
 - String

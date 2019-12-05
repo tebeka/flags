@@ -43,6 +43,41 @@ func (v *IntFlag) Set(s string) error {
 	return nil
 }
 
+// FloatFlag is an integer flag with validation function
+type FloatFlag struct {
+	check func(float64) error
+	ptr   *float64
+}
+
+// Float return a new FloatFlag
+func Float(ptr *float64, check func(float64) error) *FloatFlag {
+	return &FloatFlag{ptr: ptr, check: check}
+}
+
+func (v *FloatFlag) String() string {
+	if v.ptr == nil {
+		return ""
+	}
+	return strconv.FormatFloat(float64(*v.ptr), 'f', -1, 64)
+}
+
+// Set value from a string
+func (v *FloatFlag) Set(s string) error {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return err
+	}
+
+	if v.check != nil {
+		if err := v.check(f); err != nil {
+			return err
+		}
+	}
+
+	*v.ptr = f
+	return nil
+}
+
 // StringFlag is an string flag with validation function
 type StringFlag struct {
 	check func(string) error
