@@ -9,7 +9,7 @@ import (
 
 var (
 	// Add allows a shortcut to write: flags.Add.Port(&port, "port", "listen port")
-	Add = NewFlags(flag.CommandLine)
+	Add = New(flag.CommandLine)
 )
 
 // Flags is a struct for adding flags
@@ -17,8 +17,8 @@ type Flags struct {
 	fs *flag.FlagSet
 }
 
-// NewFlags return new Flags
-func NewFlags(fs *flag.FlagSet) *Flags {
+// New return new Flags
+func New(fs *flag.FlagSet) *Flags {
 	return &Flags{fs}
 }
 
