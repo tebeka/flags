@@ -21,12 +21,13 @@ var config struct {
 
 func ExampleUsage() {
 	fs := flag.NewFlagSet("example", flag.ContinueOnError)
-	fs.Var(flags.File(config.in, 'r'), "input", "input file")
-	fs.Var(flags.Int(&config.retries, checkRetries), "retries", "number of retries")
-	fs.Var(flags.Port(&config.port), "port", "port to listen on")
-	fs.Var(flags.String(&config.name, checkName), "name", "logger name")
-	fs.Var(flags.Time(&config.start, time.RFC3339), "start", "start time")
-	fs.Var(flags.URL(config.url), "url", "url to hit")
+	flags := flags.NewFlags(fs)
+	flags.File(config.in, 'r', "input", "input file")
+	flags.Int(&config.retries, checkRetries, "retries", "number of retries")
+	flags.Port(&config.port, "port", "port to listen on")
+	flags.String(&config.name, checkName, "name", "logger name")
+	flags.Time(&config.start, time.RFC3339, "start", "start time")
+	flags.URL(config.url, "url", "url to hit")
 
 	args := []string{
 		"-input", "/dev/null",
