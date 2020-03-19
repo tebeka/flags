@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -26,7 +25,7 @@ func main() {
 	flags.Add.String(&config.name, checkName, "name", "logger name")
 	flags.Add.Time(&config.start, time.RFC3339, "start", "start time")
 	flags.Add.URL(config.url, "url", "url to hit")
-	flag.Parse()
+	flags.Parse()
 
 	fmt.Printf("in: %q\n", config.in.Name())
 	fmt.Printf("name: %q\n", config.name)

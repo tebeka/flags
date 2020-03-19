@@ -10,6 +10,9 @@ import (
 var (
 	// Add allows a shortcut to write: flags.Add.Port(&port, "port", "listen port")
 	Add = New(flag.CommandLine)
+
+	// Shortcut allowing flags.Parse (without the need to import flag as well)
+	Parse = flag.Parse
 )
 
 // Flags is a struct for adding flags
