@@ -43,7 +43,7 @@ func (v *IntFlag) Set(s string) error {
 	return nil
 }
 
-// FloatFlag is an integer flag with validation function
+// FloatFlag is a float64 flag with validation function
 type FloatFlag struct {
 	check func(float64) error
 	ptr   *float64
