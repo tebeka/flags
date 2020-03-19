@@ -15,10 +15,10 @@ jobs:
     - name: gosec
       run: |
         go get github.com/securego/gosec/cmd/gosec
-        gosec .
+        $(go env GOROOT)/bin/gosec .
     - name: golint
       run: |
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.24.0
-        golang-ci run ./...
+        $(go env GOROOT)/bin/golang-ci run ./...
     - name: Test
       run: go test -v ./...
