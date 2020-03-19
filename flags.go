@@ -170,11 +170,11 @@ func (f *FileFlag) Set(s string) error {
 	var err error
 	switch f.mode {
 	case 'r':
-		file, err = os.Open(s)
+		file, err = os.Open(s) // #nosec
 	case 'w':
 		file, err = os.Create(s)
 	case 'a':
-		file, err = os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		file, err = os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	}
 
 	if err != nil {

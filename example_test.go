@@ -38,7 +38,10 @@ func ExampleUsage() {
 		"-url", "http://example.com",
 	}
 
-	fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		fmt.Printf("parse error: %s\n", err)
+		return
+	}
 
 	fmt.Printf("in: %q\n", config.in.Name())
 	fmt.Printf("name: %q\n", config.name)
