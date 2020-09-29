@@ -1,24 +1,27 @@
+on: [push, pull_request]
 name: Test
-on: [push]
 jobs:
-  build:
-    name: Build
+  test:
+    strategy:
+      matrix:
+        go-version: [1.15.x, 1.14.x]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Test
+      run: go test ./...
+  golangci:
+    name: lint
     runs-on: ubuntu-latest
     steps:
-    - name: Set up Go 1.14
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.14
-      id: go
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
-    - name: gosec
-      run: |
-        go get github.com/securego/gosec/cmd/gosec
-        $(go env GOPATH)/bin/gosec .
-    - name: golint
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.24.0
-        $(go env GOPATH)/bin/golangci-lint run ./...
-    - name: Test
-      run: go test -v ./...
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.31
