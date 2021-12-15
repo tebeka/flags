@@ -1,3 +1,3 @@
 module github.com/tebeka/flags
 
-go 1.13
+go 1.17
