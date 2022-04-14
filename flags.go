@@ -62,7 +62,7 @@ func (f *FlagVal[T]) String() string {
 func Int(ptr *int, check func(int) error) *FlagVal[int] {
 	v := FlagVal[int]{
 		ptr:   ptr,
-		conv:  func(s string) (int, error) { return strconv.Atoi(s) },
+		conv:  strconv.Atoi,
 		check: check,
 	}
 	return &v
@@ -148,17 +148,13 @@ func Time(ptr *time.Time, layout string) *FlagVal[time.Time] {
 }
 
 func Port(ptr *int) *FlagVal[int] {
-	v := FlagVal[int]{
-		ptr:  ptr,
-		conv: func(s string) (int, error) { return strconv.Atoi(s) },
-		check: func(i int) error {
-			// port 0 will get random free port
-			const minPort, maxPort = 0, 65535
-			if i < minPort || i > maxPort {
-				return fmt.Errorf("port %d out of range [%d:%d]", i, minPort, maxPort)
-			}
-			return nil
-		},
+	check := func(i int) error {
+		// port 0 will get random free port
+		const minPort, maxPort = 0, 65535
+		if i < minPort || i > maxPort {
+			return fmt.Errorf("port %d out of range [%d:%d]", i, minPort, maxPort)
+		}
+		return nil
 	}
-	return &v
+	return Int(ptr, check)
 }
