@@ -26,7 +26,7 @@ func New(fs *flag.FlagSet) *Flags {
 }
 
 // File adds a File flag. Mode can be 'r', 'w' or 'a'
-func (f *Flags) File(ptr *os.File, mode byte, name, usage string) {
+func (f *Flags) File(ptr **os.File, mode byte, name, usage string) {
 	f.fs.Var(File(ptr, mode), name, usage)
 }
 
