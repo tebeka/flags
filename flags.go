@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -8,223 +9,158 @@ import (
 	"time"
 )
 
-// IntFlag is an integer flag with validation function
-type IntFlag struct {
-	check func(int) error
-	ptr   *int
+type flagVal[T any] struct {
+	ptr   *T
+	conv  func(string) (T, error)
+	check func(T) error
+	str   func() string
 }
 
-// Int return a new IntFlag
-func Int(ptr *int, check func(int) error) *IntFlag {
-	return &IntFlag{ptr: ptr, check: check}
-}
-
-func (v *IntFlag) String() string {
-	if v.ptr == nil {
-		return ""
+// Flag is a generic flag
+func Flag[T any](ptr *T, conv func(string) (T, error), check func(T) error) flag.Value {
+	f := flagVal[T]{
+		ptr:   ptr,
+		conv:  conv,
+		check: check,
 	}
-	return strconv.FormatInt(int64(*v.ptr), 10)
+	return &f
 }
 
-// Set value from a string
-func (v *IntFlag) Set(s string) error {
-	i, err := strconv.Atoi(s)
+func (f *flagVal[T]) Set(s string) error {
+	if f.ptr == nil {
+		return fmt.Errorf("empty pointer")
+	}
+
+	val, err := f.conv(s)
 	if err != nil {
 		return err
 	}
 
-	if v.check != nil {
-		if err := v.check(i); err != nil {
+	if f.check != nil {
+		if err := f.check(val); err != nil {
 			return err
 		}
 	}
 
-	*v.ptr = i
+	*f.ptr = val
 	return nil
 }
 
-// FloatFlag is a float64 flag with validation function
-type FloatFlag struct {
-	check func(float64) error
-	ptr   *float64
-}
-
-// Float return a new FloatFlag
-func Float(ptr *float64, check func(float64) error) *FloatFlag {
-	return &FloatFlag{ptr: ptr, check: check}
-}
-
-func (v *FloatFlag) String() string {
-	if v.ptr == nil {
-		return ""
-	}
-	return strconv.FormatFloat(float64(*v.ptr), 'f', -1, 64)
-}
-
-// Set value from a string
-func (v *FloatFlag) Set(s string) error {
-	f, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return err
-	}
-
-	if v.check != nil {
-		if err := v.check(f); err != nil {
-			return err
-		}
-	}
-
-	*v.ptr = f
-	return nil
-}
-
-// StringFlag is an string flag with validation function
-type StringFlag struct {
-	check func(string) error
-	ptr   *string
-}
-
-// String return a new StringFlag
-func String(ptr *string, check func(string) error) *StringFlag {
-	return &StringFlag{ptr: ptr, check: check}
-}
-
-func (v *StringFlag) String() string {
-	if v.ptr == nil {
-		return ""
-	}
-	return *v.ptr
-}
-
-// Set value from a string
-func (v *StringFlag) Set(s string) error {
-	if v.check != nil {
-		if err := v.check(s); err != nil {
-			return err
-		}
-	}
-
-	*v.ptr = s
-	return nil
-}
-
-// URLFlag is a URL flag
-// based on https://golang.org/pkg/flag/#Value
-type URLFlag struct {
-	url *url.URL
-}
-
-// URL create a new URLFlag
-func URL(url *url.URL) *URLFlag {
-	return &URLFlag{url}
-}
-
-func (u *URLFlag) String() string {
-	if u.url == nil {
-		return ""
-	}
-	return u.url.String()
-}
-
-// Set value from a string
-func (u *URLFlag) Set(s string) error {
-	url, err := url.Parse(s)
-	if err != nil {
-		return err
-	}
-	*u.url = *url
-	return nil
-}
-
-// FileFlag object
-type FileFlag struct {
-	ptr  *os.File
-	mode byte // rwa
-}
-
-// File returns a new *File
-func File(ptr *os.File, mode byte) *FileFlag {
-	return &FileFlag{ptr, mode}
-}
-
-func (f *FileFlag) String() string {
+func (f *flagVal[T]) String() string {
 	if f.ptr == nil {
 		return ""
 	}
-	return (*f.ptr).Name()
+
+	if f.str != nil {
+		return f.str()
+	}
+
+	return fmt.Sprintf("%v", *f.ptr)
 }
 
-// Set value from a string
-func (f *FileFlag) Set(s string) error {
+// Int is an integer flag
+func Int(ptr *int, check func(int) error) flag.Value {
+	v := flagVal[int]{
+		ptr:   ptr,
+		conv:  strconv.Atoi,
+		check: check,
+	}
+	return &v
+}
+
+// Float is a float64 flag
+func Float(ptr *float64, check func(float64) error) flag.Value {
+	v := flagVal[float64]{
+		ptr:   ptr,
+		conv:  func(s string) (float64, error) { return strconv.ParseFloat(s, 64) },
+		check: check,
+	}
+	return &v
+}
+
+// String is a string flag
+func String(ptr *string, check func(string) error) flag.Value {
+	v := flagVal[string]{
+		ptr:   ptr,
+		conv:  func(s string) (string, error) { return s, nil },
+		check: check,
+	}
+	return &v
+}
+
+// URL is a URL flag
+func URL(ptr *url.URL) flag.Value {
+	v := flagVal[url.URL]{
+		ptr: ptr,
+		conv: func(s string) (url.URL, error) {
+			u, err := url.Parse(s)
+			if err != nil {
+				return url.URL{}, err
+			}
+			return *u, err
+		},
+	}
+	return &v
+}
+
+// File is a file flag
+func File(ptr **os.File, mode byte) flag.Value {
+	v := flagVal[*os.File]{
+		ptr:  ptr,
+		conv: func(s string) (*os.File, error) { return openFile(s, mode) },
+		str:  func() string { return (*ptr).Name() },
+	}
+	return &v
+}
+
+func openFile(s string, mode byte) (*os.File, error) {
+	switch mode {
+	case 'r', 'w', 'a':
+		// OK
+	default:
+		return nil, fmt.Errorf("unknown mode: %c", mode)
+	}
+
 	if s == "-" {
-		switch f.mode {
+		switch mode {
 		case 'r':
-			*f.ptr = *os.Stdin
+			return os.Stdin, nil
 		case 'w', 'a':
-			*f.ptr = *os.Stdout
+			return os.Stdout, nil
+		}
+	}
+
+	switch mode {
+	case 'r':
+		return os.Open(s) // #nosec
+	case 'w':
+		return os.Create(s) // #nosec
+	case 'a':
+		return os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600) // #nosec
+	}
+
+	panic("should not get here")
+}
+
+// Time is a time flag
+func Time(ptr *time.Time, layout string) flag.Value {
+	v := flagVal[time.Time]{
+		ptr:  ptr,
+		conv: func(s string) (time.Time, error) { return time.Parse(layout, s) },
+		str:  func() string { return ptr.Format(layout) },
+	}
+	return &v
+}
+
+// Port is a port flag
+func Port(ptr *int) flag.Value {
+	check := func(i int) error {
+		// port 0 will get random free port
+		const minPort, maxPort = 0, 65535
+		if i < minPort || i > maxPort {
+			return fmt.Errorf("port %d out of range [%d:%d]", i, minPort, maxPort)
 		}
 		return nil
 	}
-
-	var file *os.File
-	var err error
-	switch f.mode {
-	case 'r':
-		file, err = os.Open(s) // #nosec
-	case 'w':
-		file, err = os.Create(s) // #nosec
-	case 'a':
-		file, err = os.OpenFile(s, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600) // #nosec
-	}
-
-	if err != nil {
-		return err
-	}
-
-	*f.ptr = *file
-	return nil
-}
-
-// TimeFlag is a time.Time flag with specific format
-type TimeFlag struct {
-	ptr    *time.Time
-	layout string
-}
-
-// Time return new TimeFlag
-func Time(ptr *time.Time, layout string) *TimeFlag {
-	return &TimeFlag{ptr, layout}
-}
-
-func (t *TimeFlag) String() string {
-	if t.ptr == nil {
-		return ""
-	}
-
-	return t.ptr.Format(t.layout)
-}
-
-// Set value from a string
-func (t *TimeFlag) Set(s string) error {
-	tm, err := time.Parse(t.layout, s)
-	if err != nil {
-		return err
-	}
-
-	*t.ptr = tm
-	return nil
-}
-
-func checkPort(val int) error {
-	// port 0 will get random free port
-	const minPort, maxPort = 0, 65535
-	if val < minPort || val > maxPort {
-		return fmt.Errorf("port %d out of range [%d:%d]", val, minPort, maxPort)
-	}
-	return nil
-}
-
-// Port return an IntFlag that validates a porth
-func Port(ptr *int) *IntFlag {
-	return Int(ptr, checkPort)
+	return Int(ptr, check)
 }

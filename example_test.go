@@ -22,7 +22,7 @@ var config struct {
 func ExampleUsage() {
 	fs := flag.NewFlagSet("example", flag.ContinueOnError)
 	flags := flags.New(fs)
-	flags.File(config.in, 'r', "input", "input file")
+	flags.File(&config.in, 'r', "input", "input file")
 	flags.Int(&config.retries, checkRetries, "retries", "number of retries")
 	flags.Port(&config.port, "port", "port to listen on")
 	flags.String(&config.name, checkName, "name", "logger name")

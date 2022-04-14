@@ -27,7 +27,7 @@ var config struct {
 }
 
 func main() {
-	flags.Add.File(config.in, 'r', "input", "input file")
+	flags.Add.File(&config.in, 'r', "input", "input file")
 	flags.Add.Int(&config.retries, checkRetries, "retries", "number of retries")
 	flags.Add.Port(&config.port, "port", "port to listen on")
 	flags.Add.String(&config.name, checkName, "name", "logger name")
@@ -118,7 +118,7 @@ url: "http://localhost:8080"
 
 ## Types
 
-*This section is still unfinished*
+*This section is still unfinished*, see `example_test.go`.
 
 - File
 - Float
