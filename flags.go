@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -8,25 +9,24 @@ import (
 	"time"
 )
 
-// TODO: Better name
-type FlagVal[T any] struct {
+type flagVal[T any] struct {
 	ptr   *T
 	conv  func(string) (T, error)
 	check func(T) error
 	str   func() string
 }
 
-func Flag[T any](ptr *T, conv func(string) (T, error), check func(T) error) *FlagVal[T] {
-	f := FlagVal[T]{
+// Flag is a generic flag
+func Flag[T any](ptr *T, conv func(string) (T, error), check func(T) error) flag.Value {
+	f := flagVal[T]{
 		ptr:   ptr,
 		conv:  conv,
 		check: check,
-		str:   nil,
 	}
 	return &f
 }
 
-func (f *FlagVal[T]) Set(s string) error {
+func (f *flagVal[T]) Set(s string) error {
 	if f.ptr == nil {
 		return fmt.Errorf("empty pointer")
 	}
@@ -46,7 +46,7 @@ func (f *FlagVal[T]) Set(s string) error {
 	return nil
 }
 
-func (f *FlagVal[T]) String() string {
+func (f *flagVal[T]) String() string {
 	if f.ptr == nil {
 		return ""
 	}
@@ -58,9 +58,9 @@ func (f *FlagVal[T]) String() string {
 	return fmt.Sprintf("%v", *f.ptr)
 }
 
-// Int return a new IntFlag
-func Int(ptr *int, check func(int) error) *FlagVal[int] {
-	v := FlagVal[int]{
+// Int is an integer flag
+func Int(ptr *int, check func(int) error) flag.Value {
+	v := flagVal[int]{
 		ptr:   ptr,
 		conv:  strconv.Atoi,
 		check: check,
@@ -68,8 +68,9 @@ func Int(ptr *int, check func(int) error) *FlagVal[int] {
 	return &v
 }
 
-func Float(ptr *float64, check func(float64) error) *FlagVal[float64] {
-	v := FlagVal[float64]{
+// Float is a float64 flag
+func Float(ptr *float64, check func(float64) error) flag.Value {
+	v := flagVal[float64]{
 		ptr:   ptr,
 		conv:  func(s string) (float64, error) { return strconv.ParseFloat(s, 64) },
 		check: check,
@@ -77,8 +78,9 @@ func Float(ptr *float64, check func(float64) error) *FlagVal[float64] {
 	return &v
 }
 
-func String(ptr *string, check func(string) error) *FlagVal[string] {
-	v := FlagVal[string]{
+// String is a string flag
+func String(ptr *string, check func(string) error) flag.Value {
+	v := flagVal[string]{
 		ptr:   ptr,
 		conv:  func(s string) (string, error) { return s, nil },
 		check: check,
@@ -86,8 +88,9 @@ func String(ptr *string, check func(string) error) *FlagVal[string] {
 	return &v
 }
 
-func URL(ptr *url.URL) *FlagVal[url.URL] {
-	v := FlagVal[url.URL]{
+// URL is a URL flag
+func URL(ptr *url.URL) flag.Value {
+	v := flagVal[url.URL]{
 		ptr: ptr,
 		conv: func(s string) (url.URL, error) {
 			u, err := url.Parse(s)
@@ -100,8 +103,9 @@ func URL(ptr *url.URL) *FlagVal[url.URL] {
 	return &v
 }
 
-func File(ptr **os.File, mode byte) *FlagVal[*os.File] {
-	v := FlagVal[*os.File]{
+// File is a file flag
+func File(ptr **os.File, mode byte) flag.Value {
+	v := flagVal[*os.File]{
 		ptr:  ptr,
 		conv: func(s string) (*os.File, error) { return openFile(s, mode) },
 		str:  func() string { return (*ptr).Name() },
@@ -138,8 +142,9 @@ func openFile(s string, mode byte) (*os.File, error) {
 	panic("should not get here")
 }
 
-func Time(ptr *time.Time, layout string) *FlagVal[time.Time] {
-	v := FlagVal[time.Time]{
+// Time is a time flag
+func Time(ptr *time.Time, layout string) flag.Value {
+	v := flagVal[time.Time]{
 		ptr:  ptr,
 		conv: func(s string) (time.Time, error) { return time.Parse(layout, s) },
 		str:  func() string { return ptr.Format(layout) },
@@ -147,7 +152,8 @@ func Time(ptr *time.Time, layout string) *FlagVal[time.Time] {
 	return &v
 }
 
-func Port(ptr *int) *FlagVal[int] {
+// Port is a port flag
+func Port(ptr *int) flag.Value {
 	check := func(i int) error {
 		// port 0 will get random free port
 		const minPort, maxPort = 0, 65535
