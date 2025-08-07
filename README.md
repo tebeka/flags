@@ -1,7 +1,7 @@
 # flags - More flag Types
 
-[![GoDoc](https://godoc.org/github.com/tebeka/flags?status.svg)](https://godoc.org/github.com/tebeka/flags)
-[![Actions Status](https://github.com/tebeka/flags/workflows/Test/badge.svg)](https://github.com/tebeka/flags/actions)
+[![Go Reference](https://pkg.go.dev/badge/github.com/tebeka/flags.svg)](https://pkg.go.dev/github.com/tebeka/flags)
+[![Test](https://github.com/tebeka/flags/actions/workflows/go.yml/badge.svg)](https://github.com/tebeka/flags/actions/workflows/go.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
